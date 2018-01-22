@@ -1,10 +1,12 @@
 import java.util.*;
+import java.io.*;
+import java.text.*;
+import java.math.*;
 
 class MLP
 {
 	static int MAX_ITER = 1000;
-	static double LEARNING_RATE = 0.1;
-	static double MOMENTUM = 0.3;
+	static double LEARNING_RATE = 0.1; 
 	static int NUM_INSTANCES = 10;
 	static int NUM_INPUT_NEURONS = 3;
 	static int NUM_HIDDEN_NEURONS = 3;
@@ -26,26 +28,33 @@ class MLP
 	static double[][] input_to_hidden_weights = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
 	static double[][] hidden_to_output_weights = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
 	//matrices for gradients
-	static double[][] input_to_hidden_gradient = new double[NUM_INPUT_NEURONS][NUM_HIDDEN_NEURONS];
-	static double[][] hidden_to_output_gradient = new double[NUM_HIDDEN_NEURONS][NUM_OUTPUT_NEURONS];
-	//matrices for weights adjustments
-	static double[][] input_to_hidden_weights_adjust = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
-	static double[][] hidden_to_output_weights_adjust = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
+	static double[][] input_to_hidden_gradient = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
+	static double[][] hidden_to_output_gradient = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
 	
 	public static void main(String args[]){                       
-			
+		
+//		//100 random points
+//		for(int i = 0; i < NUM_INSTANCES; i++){
+//			x[i] = randomNumber(0 , 1000);
+//			y[i] = randomNumber(0 , 1000); 
+//			z[i] = randomNumber(0 , 1000);        
+//			outputs[i] = 1.0;         
+//			System.out.println(x[i]+"\t"+y[i]+"\t"+z[i]+"\t"+outputs[i]);
+//		}
+
+		
 		double outputError, globalError;
 		int ins, iteration;
-		//double output;
+		double output;
 
 		//initialise the weights to random numbers between 0 and 1
 		for (int i=0; i<=NUM_INPUT_NEURONS; i++)
 			for (int j=0; j<=NUM_HIDDEN_NEURONS; j++)
-				input_to_hidden_weights[i][j] = Math.random();
+				input_to_hidden_weights[i][j] = randomNumber(0,1);
 		
 		for (int i=0; i<=NUM_HIDDEN_NEURONS; i++)
 			for (int j=0; j<=NUM_OUTPUT_NEURONS; j++)
-				hidden_to_output_weights[i][j] = Math.random();
+				hidden_to_output_weights[i][j] = randomNumber(0,1);
 
 		iteration = 0;
 		do {
@@ -77,26 +86,47 @@ class MLP
 				//calculating gradients of weights
 				for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
 					for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
-						hidden_to_output_gradient[h][o] = outputDelta[o] * hidden[h];
+						
 					}
 				}
-				for (int i=0; i<NUM_INPUT_NEURONS; i++){
-					for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-						input_to_hidden_gradient[i][h] = outputDelta[h] * inputs[i];
-					}
-				}
-				//update weights
 				
 				
+				outputError = outputs[0] - actualOutputs[0];
+				//update weights and bias
+				weights[0] += LEARNING_RATE * localError * x[p];
+				weights[1] += LEARNING_RATE * localError * y[p];
+				//weights[2] += LEARNING_RATE * localError * z[p];
+				weights[2] += LEARNING_RATE * localError;
+				//summation of squared error (error value for all instances)
+				globalError += (outputError*outputError);
 			}
+
+			/* Root Mean Squared Error */
+			System.out.println("Iteration "+iteration+" : RMSE = "+Math.sqrt(globalError/NUM_INSTANCES));
 		} while (globalError != 0 && iteration<=MAX_ITER);
 
+		System.out.println("\n=======\nDecision boundary equation:");
+		System.out.println(weights[0] +"*x + "+weights[1]+"*y +  "+/*weights[2]+"*z + "+*/weights[2]+" = 0");
+
+		//generate 10 new random points and check their classes
+		//notice the range of -10 and 10 means the new point could be of class 1 or 0
+		//-10 to 10 covers all the ranges we used in generating the 50 classes of 1's and 0's above
+		//for(int j = 0; j < 10; j++){
+			//double x1 = randomNumber(-10 , 10);
+			//double y1 = randomNumber(-10 , 10);   
+			//double z1 = randomNumber(-10 , 10); 
+		
+
+			//output = calculateOutput(theta,weights, x1, y1/*, z1*/);
+			//System.out.println("\n=======\nNew Random Point:");
+			//System.out.println("x = "+x1+",y = "+y1/*+ ",z = "+z1*/);
+			//System.out.println("class = "+output);
+		
 	}//end main  
 	
 	static void getValues() {
-		Random rand = new Random();
 		for (int i=0; i<NUM_INPUT_NEURONS; i++)
-			inputs[i] = rand.nextInt(1000); 
+			inputs[i] = randomNumber(0,1000); 
 	}
 	
 	static double calculateHiddenValue (int n){
@@ -138,5 +168,36 @@ class MLP
 		}
 		return total;
 	}
+	/**
+	 * returns a random double value within a given range
+	 * @param min the minimum value of the required range (int)
+	 * @param max the maximum value of the required range (int)
+	 * @return a random double value between min and max
+	 */ 
+	public static double randomNumber(int min , int max) {
+		DecimalFormat df = new DecimalFormat("#.####");
+		double d = min + Math.random() * (max - min);
+		String s = df.format(d);
+		double x = Double.parseDouble(s);
+		return x;
+	}
+
+	/**
+	 * returns either 1 or 0 using a threshold function
+	 * theta is 0range
+	 * @param theta an integer value for the threshold
+	 * @param weights[] the array of weights
+	 * @param x the x input value
+	 * @param y the y input value
+	 * @param z the z input value
+	 * @return 1 or 0
+	 */ 
+	static double calculateOutput(int theta, double weights[], double x, double y, double z)
+	{
+		double sum = x * weights[0] + y * weights[1] + z * weights[2] + weights[2];
+		return (1.0/(1+Math.pow(Math.E,-sum)));
+	}
 	
+	
+
 }

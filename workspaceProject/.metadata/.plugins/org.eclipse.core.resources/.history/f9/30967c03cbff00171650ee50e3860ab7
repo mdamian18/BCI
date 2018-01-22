@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.*;
+import java.text.*;
+import java.math.*;
 
 class MLP
 {
@@ -28,15 +31,12 @@ class MLP
 	//matrices for gradients
 	static double[][] input_to_hidden_gradient = new double[NUM_INPUT_NEURONS][NUM_HIDDEN_NEURONS];
 	static double[][] hidden_to_output_gradient = new double[NUM_HIDDEN_NEURONS][NUM_OUTPUT_NEURONS];
-	//matrices for weights adjustments
-	static double[][] input_to_hidden_weights_adjust = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
-	static double[][] hidden_to_output_weights_adjust = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
 	
 	public static void main(String args[]){                       
 			
 		double outputError, globalError;
 		int ins, iteration;
-		//double output;
+		double output;
 
 		//initialise the weights to random numbers between 0 and 1
 		for (int i=0; i<=NUM_INPUT_NEURONS; i++)
@@ -85,8 +85,6 @@ class MLP
 						input_to_hidden_gradient[i][h] = outputDelta[h] * inputs[i];
 					}
 				}
-				//update weights
-				
 				
 			}
 		} while (globalError != 0 && iteration<=MAX_ITER);
