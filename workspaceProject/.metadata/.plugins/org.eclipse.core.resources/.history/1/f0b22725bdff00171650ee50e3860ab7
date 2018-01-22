@@ -20,7 +20,7 @@ class MLP
 	static double[] hiddenSum = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputSum = new double [NUM_OUTPUT_NEURONS];
 	//array with output errors
-	//static double[] outputError = new double [NUM_OUTPUT_NEURONS];
+	static double[] outputError = new double [NUM_OUTPUT_NEURONS];
 	//array for node deltas
 	static double[] hiddenDelta = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputDelta = new double [NUM_OUTPUT_NEURONS];
@@ -40,7 +40,7 @@ class MLP
 //		}
 
 		
-		double outputError, globalError;
+		double outError, globalError;
 		int ins, iteration;
 		double output;
 
@@ -71,17 +71,11 @@ class MLP
 				}
 				//get the values of the actual outputs
 				getActualOutputValues();			
-				//calculate output deltas
+				//calculate the output errors
 				for (int e=0; e<NUM_OUTPUT_NEURONS; e++){
-					outputError = outputs[e] - actualOutputs[e];
-					outputDelta[e] = outputError * sigmoidDerivative(outputSum[e]);
-					//calculate hidden deltas starting from output node e
-					for (int f=0; f<NUM_HIDDEN_NEURONS; f++){
-						hiddenDelta[f] = sigmoidDerivative(hiddenSum[f]) * weightsSum(hidden_to_output[][e], ) * outputDelta[e];
-					}
+					outError = outputs[e] - actualOutputs[e];
+					
 				}
-				
-				
 				outputError = outputs[0] - actualOutputs[0];
 				//update weights and bias
 				weights[0] += LEARNING_RATE * localError * x[p];
@@ -145,15 +139,6 @@ class MLP
 		//read from file
 		//initialize array  manually
 		actualOutputs[0] = 1.0;
-	}
-	
-	static double sigmoidDerivative (double s){
-		double f = 1.0/(1+Math.pow(Math.E, -s));
-		return (f*(1-f));
-	}
-	
-	static double weightsSum (double [] a, int len){
-		for (int i=0; i<len; i++)
 	}
 	/**
 	 * returns a random double value within a given range

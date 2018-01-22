@@ -16,14 +16,6 @@ class MLP
 	static double[] hidden = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputs = new double [NUM_OUTPUT_NEURONS];
 	static double[] actualOutputs = new double [NUM_OUTPUT_NEURONS];
-	//arrays of sums
-	static double[] hiddenSum = new double [NUM_HIDDEN_NEURONS];
-	static double[] outputSum = new double [NUM_OUTPUT_NEURONS];
-	//array with output errors
-	//static double[] outputError = new double [NUM_OUTPUT_NEURONS];
-	//array for node deltas
-	static double[] hiddenDelta = new double [NUM_HIDDEN_NEURONS];
-	static double[] outputDelta = new double [NUM_OUTPUT_NEURONS];
 	//create the matrices for weights
 	static double[][] input_to_hidden_weights = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
 	static double[][] hidden_to_output_weights = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
@@ -71,17 +63,7 @@ class MLP
 				}
 				//get the values of the actual outputs
 				getActualOutputValues();			
-				//calculate output deltas
-				for (int e=0; e<NUM_OUTPUT_NEURONS; e++){
-					outputError = outputs[e] - actualOutputs[e];
-					outputDelta[e] = outputError * sigmoidDerivative(outputSum[e]);
-					//calculate hidden deltas starting from output node e
-					for (int f=0; f<NUM_HIDDEN_NEURONS; f++){
-						hiddenDelta[f] = sigmoidDerivative(hiddenSum[f]) * weightsSum(hidden_to_output[][e], ) * outputDelta[e];
-					}
-				}
-				
-				
+				//calculate the output error
 				outputError = outputs[0] - actualOutputs[0];
 				//update weights and bias
 				weights[0] += LEARNING_RATE * localError * x[p];
@@ -126,7 +108,6 @@ class MLP
 			sum += inputs[d]*input_to_hidden_weights[d][n];
 		//add the weight of the bias to the sum;
 		sum += input_to_hidden_weights[NUM_INPUT_NEURONS][n];
-		hiddenSum[n] = sum;
 		return (1.0/(1+Math.pow(Math.E,-sum)));
 	}
 
@@ -136,7 +117,6 @@ class MLP
 			sum += hidden[d]*hidden_to_output_weights[d][t];
 		//add the weight of the bias to the sum;
 		sum += hidden_to_output_weights[NUM_HIDDEN_NEURONS][t];
-		outputSum[t] = sum;
 		return (1.0/(1+Math.pow(Math.E,-sum)));
 	}
 	
@@ -145,15 +125,6 @@ class MLP
 		//read from file
 		//initialize array  manually
 		actualOutputs[0] = 1.0;
-	}
-	
-	static double sigmoidDerivative (double s){
-		double f = 1.0/(1+Math.pow(Math.E, -s));
-		return (f*(1-f));
-	}
-	
-	static double weightsSum (double [] a, int len){
-		for (int i=0; i<len; i++)
 	}
 	/**
 	 * returns a random double value within a given range
