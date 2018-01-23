@@ -1,11 +1,11 @@
-import java.lang.*;
+import java.util.*;
 
 class MLP
 {
 	static int MAX_ITER = 100;
 	static double LEARNING_RATE = 0.1;
 	static double MOMENTUM = 0.3;
-	static int NUM_INSTANCES = 3;
+	static int NUM_INSTANCES = 10;
 	static int NUM_INPUT_NEURONS = 2;
 	static int NUM_HIDDEN_NEURONS = 2;
 	static int NUM_OUTPUT_NEURONS = 1;
@@ -36,16 +36,16 @@ class MLP
 			
 		double outputError, globalError = 0.0;
 		int ins, iteration;
-		double weightDifference;
+		double newWeight;
 		//double output;
 
 		//initialise the weights to random numbers between 0 and 1
 		for (int i=0; i<=NUM_INPUT_NEURONS; i++)
-			for (int j=0; j<NUM_HIDDEN_NEURONS; j++)
+			for (int j=0; j<=NUM_HIDDEN_NEURONS; j++)
 				input_to_hidden_weights[i][j] = Math.random();
 		
 		for (int i=0; i<=NUM_HIDDEN_NEURONS; i++)
-			for (int j=0; j<NUM_OUTPUT_NEURONS; j++)
+			for (int j=0; j<=NUM_OUTPUT_NEURONS; j++)
 				hidden_to_output_weights[i][j] = Math.random();
 
 		iteration = 0;
@@ -90,24 +90,15 @@ class MLP
 				//update weights
 				for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
 					for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
-						weightDifference = LEARNING_RATE * hidden_to_output_gradient[h][o] + MOMENTUM * hidden_to_output_weights_adjust[h][o];
-						hidden_to_output_weights_adjust[h][o] = weightDifference;
-						hidden_to_output_weights[h][o] += weightDifference;
+						newWeight = LEARNING_RATE * hidden_to_output_gradient[h][o] + MOMENTUM * hidden_to_output_weights_adjust[h][o];
+						hidden_to_output_weights_adjust[h][o] = newWeight;
 					}
 				}
 				for (int i=0; i<NUM_INPUT_NEURONS; i++){
 					for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-						weightDifference = LEARNING_RATE * input_to_hidden_gradient[i][h] + MOMENTUM * input_to_hidden_weights_adjust[i][h];
-						input_to_hidden_weights_adjust[i][h] = weightDifference;
-						input_to_hidden_weights[i][h] -= weightDifference;
+						newWeight = LEARNING_RATE * input_to_hidden_gradient[i][h] + MOMENTUM * input_to_hidden_weights_adjust[i][h];
+						input_to_hidden_weights_adjust[i][h] = newWeight;
 					}
-				}
-				//update weights for bias
-				for (int b=0; b<NUM_OUTPUT_NEURONS; b++){
-					hidden_to_output_weights[NUM_HIDDEN_NEURONS][b] = 0.0;
-				}
-				for (int b=0; b<NUM_HIDDEN_NEURONS; b++){
-					input_to_hidden_weights[NUM_INPUT_NEURONS][b] = 1.0;
 				}
 
 			}
