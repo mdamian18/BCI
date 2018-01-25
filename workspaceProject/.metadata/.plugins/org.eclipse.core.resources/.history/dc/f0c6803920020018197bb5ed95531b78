@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.*;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -9,15 +10,15 @@ class MLP
 	static double LEARNING_RATE = 0.7;
 	static double MOMENTUM = 0.05;
 	static int NUM_TRAINING_INSTANCES = 4;
-	static int NUM_TESTING_INSTANCES = 4;
+	static int NUM_TESTING_INSTANCES = 2;
 	static int NUM_INPUT_NEURONS = 2;
 	static int NUM_HIDDEN_NEURONS = 5;
 	static int NUM_OUTPUT_NEURONS = 1;
 	static int theta = 0; 
-	static double[][] inputs = new double [NUM_INPUT_NEURONS][1000];
+	static double[][] inputs = new double [NUM_INPUT_NEURONS][];
 	static double[] hidden = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputs = new double [NUM_OUTPUT_NEURONS];
-	static double[][] actualOutputs = new double [NUM_OUTPUT_NEURONS][1000];
+	static double[][] actualOutputs = new double [NUM_OUTPUT_NEURONS][];
 	//arrays of sums
 	static double[] hiddenSum = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputSum = new double [NUM_OUTPUT_NEURONS];
@@ -55,7 +56,7 @@ class MLP
 		//get the training values of the actual outputs
 		getActualOutputValues(actualOutputs, 0);	
 		
-		//train the network
+		//start training the network
 		train();
 		
 		//get the testing values for the input neurons
@@ -64,9 +65,19 @@ class MLP
 		//get the testing values of the actual outputs
 		getActualOutputValues(actualOutputs, 1);
 		
-		//test the performance of the network
-		test();
-		
+		//System.out.print(inputs[0]+" "+inputs[1]+" ");
+		//calculate values of hidden neurons
+		for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
+			hidden[h] = calculateHiddenValue(h, 0);
+		}
+		//calculate values of output neurons
+		for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
+			outputs[o] = calculateOutputValue(o);
+			System.out.println();
+			System.out.print(outputs[0]);
+		}
+	
+
 	}//end main  
 	
 	static void getInputValues(double mat[][], int t) {
@@ -85,7 +96,7 @@ class MLP
 			if (t==0)
 				read = new Scanner (new File("src/input.txt"));
 			else 
-				read = new Scanner (new File("src/testinputs.txt"));
+				read = new Scanner (new File("src/testinput.txt"));
 			for(int i = 0; i < col; i++)
 			{
 			    for(int j = 0; j < row; j++)
@@ -131,7 +142,7 @@ class MLP
 			if (t==0)
 				read = new Scanner (new File("src/output.txt"));
 			else
-				read = new Scanner (new File("src/testoutputs.txt"));
+				read = new Scanner (new File("src/testoutput.txt"));
 			for(int i = 0; i < col; i++)
 			{
 			    for(int j = 0; j < row; j++)
@@ -222,27 +233,10 @@ class MLP
 			}
 			
 			if (iteration%100==0)
-				System.out.print(globalError + " " + iteration + "\n");
+				System.out.print(globalError + " " + iteration + "/n");
 
 		} while (globalError > 0.001 && iteration<=MAX_ITER);
 		
-	}
-	
-	static void test(){
-		
-		//calculate values of hidden neurons
-		for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-			hidden[h] = calculateHiddenValue(h, 0);
-		}
-		
-		//calculate values of output neurons
-		for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
-			outputs[o] = calculateOutputValue(o);
-			System.out.println();
-			System.out.print(outputs[0]);
-		}
-		
-		//implement a way of testing the performance of the network
 	}
 	
 	static double calculateHiddenValue (int n, int ins){

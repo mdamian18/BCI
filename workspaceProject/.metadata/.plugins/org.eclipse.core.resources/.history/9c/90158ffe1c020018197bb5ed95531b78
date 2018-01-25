@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.*;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -9,15 +10,15 @@ class MLP
 	static double LEARNING_RATE = 0.7;
 	static double MOMENTUM = 0.05;
 	static int NUM_TRAINING_INSTANCES = 4;
-	static int NUM_TESTING_INSTANCES = 4;
+	static int NUM_TESTING_INSTANCES = 2;
 	static int NUM_INPUT_NEURONS = 2;
 	static int NUM_HIDDEN_NEURONS = 5;
 	static int NUM_OUTPUT_NEURONS = 1;
 	static int theta = 0; 
-	static double[][] inputs = new double [NUM_INPUT_NEURONS][1000];
+	static double[][] inputs = new double [NUM_INPUT_NEURONS][NUM_INSTANCES];
 	static double[] hidden = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputs = new double [NUM_OUTPUT_NEURONS];
-	static double[][] actualOutputs = new double [NUM_OUTPUT_NEURONS][1000];
+	static double[][] actualOutputs = new double [NUM_OUTPUT_NEURONS][NUM_INSTANCES];
 	//arrays of sums
 	static double[] hiddenSum = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputSum = new double [NUM_OUTPUT_NEURONS];
@@ -37,7 +38,10 @@ class MLP
 	static double[][] hidden_to_output_weights_adjust = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
 	
 	public static void main(String args[]){                       
-		
+			
+		double outputError, globalError = 0.0;
+		int ins, iteration;
+		double weightDifference;
 		//double output;
 
 		//initialise the weights to random numbers between 0 and 1
@@ -48,144 +52,37 @@ class MLP
 		for (int i=0; i<=NUM_HIDDEN_NEURONS; i++)
 			for (int j=0; j<NUM_OUTPUT_NEURONS; j++)
 				hidden_to_output_weights[i][j] = Math.random()*2 -1;
-		
-		//get the training values for the input neurons
-		getInputValues(inputs, 0);
-		
-		//get the training values of the actual outputs
-		getActualOutputValues(actualOutputs, 0);	
-		
-		//train the network
-		train();
-		
-		//get the testing values for the input neurons
-		getInputValues(inputs, 1);
-		
-		//get the testing values of the actual outputs
-		getActualOutputValues(actualOutputs, 1);
-		
-		//test the performance of the network
-		test();
-		
-	}//end main  
-	
-	static void getInputValues(double mat[][], int t) {
-		//mat is the matrix where the numbers should be stored
-		// t=0 means training mode and t=1 means testing mode
-		
-		//read from file
-		int row = NUM_INPUT_NEURONS;
-		int col;
-		if (t==0)
-			col = NUM_TRAINING_INSTANCES;
-		else
-			col = NUM_TESTING_INSTANCES;
-		Scanner read;
-		try {
-			if (t==0)
-				read = new Scanner (new File("src/input.txt"));
-			else 
-				read = new Scanner (new File("src/testinputs.txt"));
-			for(int i = 0; i < col; i++)
-			{
-			    for(int j = 0; j < row; j++)
-			    {
-			        if(read.hasNextDouble())
-			        {
-			            mat[j][i] = read.nextDouble();
-			        }
-			    }
-			}
-			read.close();
-		} catch (FileNotFoundException e) {
-			System.out.print("Error while reading inputs");
-		}
-		
-		//random inputs
-		Random rand = new Random();
-		double randomValue = 0.0, min = 0.0, max = 1000.0;
-		for (int i=0; i<NUM_INPUT_NEURONS; i++)
-			randomValue = min + (max - min) * rand.nextDouble();
-		for(int i = 0; i < col; i++)
-		{
-		    for(int j = 0; j < row; j++)
-		    {
-		            mat[j][i] = randomValue;
-		    }
-		}
-	}
-	
-	static void getActualOutputValues (double mat[][], int t){
-		//mat is the matrix where the numbers should be stored
-		// t=0 means training mode and t=1 means testing mode
-		
-		//read from file
-		int row = NUM_OUTPUT_NEURONS;
-		int col;
-		if (t==0)
-			col = NUM_TRAINING_INSTANCES;
-		else
-			col = NUM_TESTING_INSTANCES;
-		Scanner read;
-		try {
-			if (t==0)
-				read = new Scanner (new File("src/output.txt"));
-			else
-				read = new Scanner (new File("src/testoutputs.txt"));
-			for(int i = 0; i < col; i++)
-			{
-			    for(int j = 0; j < row; j++)
-			    {
-			        if(read.hasNextDouble())
-			        {
-			            mat[j][i] = read.nextDouble();
-			        }
-			    }
-			}
-			read.close();
-		} catch (FileNotFoundException e) {
-			System.out.print("Error while reading outputs");
-		}
-		
-		//calculate actual outputs for a known function
-		//implement function
-	}
-	
-	static void train(){
-		
-		double outputError, globalError = 0.0;
-		int ins, iteration;
-		double weightDifference;
-		
+
 		iteration = 0;
 		do {
 			iteration++;
 			globalError = 0.0;
 			//loop through all instances (complete one epoch)
-			for (ins = 0; ins < NUM_TRAINING_INSTANCES; ins++) {
-				
+			for (ins = 0; ins < NUM_INSTANCES; ins++) {
+				//get values for the input neurons
+				getValues();
+				//System.out.print(inputs[0]+" "+inputs[1]+" ");
 				//calculate values of hidden neurons
 				for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
 					hidden[h] = calculateHiddenValue(h, ins);
 				}
-				
 				//calculate values of output neurons
 				for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
 					outputs[o] = calculateOutputValue(o);
 				}
-						
+				//System.out.print(outputs[0]+" ");
+				//get the values of the actual outputs
+				getActualOutputValues();			
 				//calculate output deltas
 				for (int e=0; e<NUM_OUTPUT_NEURONS; e++){
 					outputError = outputs[e] - actualOutputs[e][ins];
 					outputDelta[e] = -outputError * sigmoidDerivative(outputSum[e]);
 					globalError += outputError * outputError;
 				}
-				
 				//calculate hidden deltas
 				for (int f=0; f<NUM_HIDDEN_NEURONS; f++){
 					hiddenDelta[f] = sigmoidDerivative(hiddenSum[f]) * calculateSum(f);
 				}
-				
 				//calculating gradients of weights
 				for (int h=0; h<=NUM_HIDDEN_NEURONS; h++){
 					for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
@@ -203,7 +100,15 @@ class MLP
 							input_to_hidden_gradient[i][h] = hiddenDelta[h];
 					}
 				}
-
+//				for (int i=0; i<=NUM_INPUT_NEURONS; i++)
+//					for (int j=0; j<NUM_HIDDEN_NEURONS; j++)
+//						if (iteration%100==0)
+//							//System.out.print("input" + input_to_hidden_weights[i][j]+" ");
+				
+//				for (int i=0; i<=NUM_HIDDEN_NEURONS; i++)
+//					for (int j=0; j<NUM_OUTPUT_NEURONS; j++)
+//						if (iteration%100==0)
+//							//System.out.print(" hidden" +hidden_to_output_weights[i][j]+" ");
 				//update weights
 				for (int h=0; h<=NUM_HIDDEN_NEURONS; h++){
 					for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
@@ -221,28 +126,77 @@ class MLP
 				}
 			}
 			
-			if (iteration%100==0)
-				System.out.print(globalError + " " + iteration + "\n");
-
+			if (iteration%100==0){
+			System.out.print(globalError);
+			System.out.print(" ");
+			System.out.print(iteration);
+			System.out.println();
+			}
 		} while (globalError > 0.001 && iteration<=MAX_ITER);
-		
-	}
-	
-	static void test(){
-		
+		inputs[0][0] = 0.0;
+		inputs[1][0] = 1.0;
+		//System.out.print(inputs[0]+" "+inputs[1]+" ");
 		//calculate values of hidden neurons
 		for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
 			hidden[h] = calculateHiddenValue(h, 0);
 		}
-		
 		//calculate values of output neurons
 		for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
 			outputs[o] = calculateOutputValue(o);
 			System.out.println();
 			System.out.print(outputs[0]);
 		}
+	
+
+	}//end main  
+	
+	static void getValues(double mat[][], int t) {
+		//mat is the matrix where the numbers should be stored
+		// t=0 means training mode and t=1 means testing mode
 		
-		//implement a way of testing the performance of the network
+		//read from file
+		int row = NUM_INPUT_NEURONS;
+		int col;
+		if (t==0)
+			col = NUM_TRAINING_INSTANCES;
+		else
+			col = NUM_TESTING_INSTANCES;
+		Scanner read;
+		try {
+			if (t==0)
+				read = new Scanner (new File("src/input.txt"));
+			else 
+				read = new Scanner (new File("src/testinput.txt"));
+			for(int i = 0; i < col; i++)
+			{
+			    for(int j = 0; j < row; j++)
+			    {
+			        if(read.hasNextDouble())
+			        {
+			            mat[j][i] = read.nextDouble();
+			        }
+			    }
+			}
+			read.close();
+		} catch (FileNotFoundException e) {
+			System.out.print("Error while reading inputs");
+		}
+		
+		//random inputs
+		Random rand = new Random();
+		double randomValue, min = 0.0, max = 1000.0;
+		for (int i=0; i<NUM_INPUT_NEURONS; i++)
+			randomValue = min + (max - min) * rand.nextDouble();
+		for(int i = 0; i < col; i++)
+		{
+		    for(int j = 0; j < row; j++)
+		    {
+		        if(read.hasNextDouble())
+		        {
+		            mat[j][i] = randomValue;
+		        }
+		    }
+		}
 	}
 	
 	static double calculateHiddenValue (int n, int ins){
@@ -263,6 +217,44 @@ class MLP
 		sum += hidden_to_output_weights[NUM_HIDDEN_NEURONS][t];
 		outputSum[t] = sum;
 		return (1.0/(1+Math.pow(Math.E,-sum)));
+	}
+	
+	static void getActualOutputValues (){
+		//read from console
+		//read from file
+		int row = NUM_OUTPUT_NEURONS;
+		int col = NUM_INSTANCES;
+		Scanner read;
+		try {
+			read = new Scanner (new File("src/output.txt"));
+			for(int i = 0; i < col; ++i)
+			{
+			    for(int j = 0; j < row; ++j)
+			    {
+			        if(read.hasNextDouble())
+			        {
+			            actualOutputs[j][i] = read.nextDouble();
+			        }
+			    }
+			}
+			read.close();
+		} catch (FileNotFoundException e) {
+			System.out.print("Error while reading outputs");
+		}
+		//initialize array  manually
+//		if (ins%4==0){
+//			actualOutputs[0] = 0.0;
+//		}
+//		if (ins%4==1){
+//			actualOutputs[0] = 1.0;
+//		}
+//		if (ins%4==2){
+//			actualOutputs[0] = 1.0;
+//		}
+//		if (ins%4==3){
+//			actualOutputs[0] = 0.0;
+//		}
+	
 	}
 	
 	static double sigmoidDerivative (double s){
