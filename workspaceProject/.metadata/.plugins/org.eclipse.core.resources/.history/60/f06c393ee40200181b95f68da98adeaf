@@ -50,19 +50,19 @@ class MLP
 				hidden_to_output_weights[i][j] = Math.random()*2 -1;
 		
 		//get the training values for the input neurons
-		getInputValues(0);
+		getInputValues(inputs, 0);
 		
 		//get the training values of the actual outputs
-		getActualOutputValues(0);	
+		getActualOutputValues(actualOutputs, 0);	
 		
 		//train the network
 		train();
 		
 		//get the testing values for the input neurons
-		getInputValues(1);
+		getInputValues(inputs, 1);
 		
 		//get the testing values of the actual outputs
-		getActualOutputValues(1);
+		getActualOutputValues(actualOutputs, 1);
 		
 		//test the performance of the network
 		test();
@@ -101,7 +101,7 @@ class MLP
 		}
 		
 		//random inputs
-		/*Random rand = new Random();
+		Random rand = new Random();
 		double randomValue = 0.0, min = 0.0, max = 1000.0;
 		for (int i=0; i<NUM_INPUT_NEURONS; i++)
 			randomValue = min + (max - min) * rand.nextDouble();
@@ -111,10 +111,11 @@ class MLP
 		    {
 		            inputs[j][i] = randomValue;
 		    }
-		}*/
+		}
 	}
 	
-	static void getActualOutputValues (int t){
+	static void getActualOutputValues (double mat[][], int t){
+		//mat is the matrix where the numbers should be stored
 		// t=0 means training mode and t=1 means testing mode
 		
 		//read from file
@@ -136,7 +137,7 @@ class MLP
 			    {
 			        if(read.hasNextDouble())
 			        {
-			            actualOutputs[j][i] = read.nextDouble();
+			            mat[j][i] = read.nextDouble();
 			        }
 			    }
 			}
@@ -232,14 +233,14 @@ class MLP
 		
 			//calculate values of hidden neurons
 			for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-				hidden[h] = calculateHiddenValue(h, ins);
+				hidden[h] = calculateHiddenValue(h, 0);
 			}
 			
 			//calculate values of output neurons
 			for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
 				outputs[o][ins] = calculateOutputValue(o);
 				System.out.println();
-				System.out.print(outputs[o][ins]);
+				System.out.print(outputs[0][ins]);
 			}
 		}
 		

@@ -232,14 +232,14 @@ class MLP
 		
 			//calculate values of hidden neurons
 			for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-				hidden[h] = calculateHiddenValue(h, ins);
+				hidden[h] = calculateHiddenValue(h, 0);
 			}
 			
 			//calculate values of output neurons
 			for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
 				outputs[o][ins] = calculateOutputValue(o);
 				System.out.println();
-				System.out.print(outputs[o][ins]);
+				System.out.print(outputs[0][ins]);
 			}
 		}
 		

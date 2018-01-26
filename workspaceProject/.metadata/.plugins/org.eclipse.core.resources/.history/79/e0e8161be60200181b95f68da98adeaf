@@ -232,7 +232,7 @@ class MLP
 		
 			//calculate values of hidden neurons
 			for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
-				hidden[h] = calculateHiddenValue(h, ins);
+				hidden[h] = calculateHiddenValue(h, 0);
 			}
 			
 			//calculate values of output neurons
