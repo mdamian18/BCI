@@ -1,0 +1,67 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+class feature_extraction{
+	static int NUMBER_OF_TRIALS = 40;
+	static int NUMBER_OF_RUNS = 9;
+	static int[] startTimeTrain = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static int[] startTimeTest = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static int[] classLabel = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static double[][] signalData = new double[986780][60];
+	public static void main (String args[]){
+		
+		Scanner read1, read2, read3;
+		int k = NUMBER_OF_RUNS * NUMBER_OF_TRIALS, m=0, n=0, l=0;
+		try {
+				read1 = new Scanner (new File("src/k3b_HDR_TRIG.txt"));
+				read2 = new Scanner (new File("src/k3b_HDR_Classlabel.txt"));
+				read3 = new Scanner (new File("src/kb3_s.txt"));
+			
+			for(int i=0; i<k; i++)
+			{
+			        if(read2.hasNextInt())
+			        {
+			            classLabel[n] = read2.nextInt();
+			            n++;
+			            read2.nextLine();
+			            if(read1.hasNextInt())
+				        {
+				            startTimeTrain[m] = read1.nextInt();
+				            m++;
+				        }
+			        }
+			        else
+			        {
+			        	read2.nextLine();
+			        	if(read1.hasNextInt())
+				        {
+				            startTimeTest[l] = read1.nextInt();
+				            l++;
+				        }
+			        }
+			}
+			read1.close();
+			read2.close();
+			
+			for(int i=0; i<986780; i++)
+			{
+				for(int j=0; j<60; j++)
+				{
+					if(read3.hasNextDouble())
+					{
+						signalData[i][j] = read3.nextDouble();
+					}
+					else
+					{
+						read3.next("NaN");
+						signalData[i][j] = 0.0;
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			System.out.print("Error while reading inputs");
+		}
+		System.out.print(m +" "+ l);
+	}
+}

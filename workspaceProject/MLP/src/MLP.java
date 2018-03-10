@@ -12,7 +12,7 @@ class MLP
 	static int NUM_TESTING_INSTANCES = 4;
 	static int NUM_INPUT_NEURONS = 2;
 	static int NUM_HIDDEN_NEURONS = 5;
-	static int NUM_OUTPUT_NEURONS = 1;
+	static int NUM_OUTPUT_NEURONS = 2;
 	static int theta = 0; 
 	static double[][] inputs;
 	static double[] hidden = new double [NUM_HIDDEN_NEURONS];
@@ -91,7 +91,7 @@ class MLP
 			col = NUM_TRAINING_INSTANCES;
 		else
 			col = NUM_TESTING_INSTANCES;
-		/*Scanner read;
+		Scanner read;
 		try {
 			if (t==0)
 				read = new Scanner (new File("src/input.txt"));
@@ -110,18 +110,18 @@ class MLP
 			read.close();
 		} catch (FileNotFoundException e) {
 			System.out.print("Error while reading inputs");
-		}*/
+		}
 		
 		//random inputs
-		Random rand = new Random();
-		double min = 0.0, max = 1.0;
-		for(int i = 0; i < col; i++)
-		{
-		    for(int j = 0; j < row; j++)
-		    {
-		            inputs[j][i] = min + (max - min) * rand.nextDouble();
-		    }
-		}
+//		Random rand = new Random();
+//		double min = 0.0, max = 1.0;
+//		for(int i = 0; i < col; i++)
+//		{
+//		    for(int j = 0; j < row; j++)
+//		    {
+//		            inputs[j][i] = min + (max - min) * rand.nextDouble();
+//		    }
+//		}
 	}
 	
 	static void getActualOutputValues (int t){
@@ -134,7 +134,7 @@ class MLP
 			col = NUM_TRAINING_INSTANCES;
 		else
 			col = NUM_TESTING_INSTANCES;
-		/*Scanner read;
+		Scanner read;
 		try {
 			if (t==0)
 				read = new Scanner (new File("src/output.txt"));
@@ -153,18 +153,18 @@ class MLP
 			read.close();
 		} catch (FileNotFoundException e) {
 			System.out.print("Error while reading outputs");
-		}*/
+		}
 		
 		//calculate actual outputs for a known function
 		//Sphere function
-		double sum;
+		/*double sum;
 		for (int k=0; k<col; k++){
 			sum = 0.0;
 			for (int i=0; i<NUM_INPUT_NEURONS; i++){
 				sum += Math.pow(inputs[i][k], 2.0);
 			}
-			actualOutputs[0][k] = sum;
-		}
+			actualOutputs[0][k] = sum/2.0;
+		}*/
 		
 		//implement function
 	}
@@ -242,12 +242,12 @@ class MLP
 			if (iteration%100==0)
 				System.out.print(globalError + " " + iteration + "\n");
 
-		} while (globalError > 0.001 && iteration<=MAX_ITER);
+		} while (globalError > 0.0001 && iteration<=MAX_ITER);
 		
 	}
 	
 	static void test(){
-		//double delta;
+		double delta;
 		for (int ins=0; ins<NUM_TESTING_INSTANCES; ins++){
 		
 			//calculate values of hidden neurons
@@ -259,16 +259,17 @@ class MLP
 			for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
 				outputs[o][ins] = calculateOutputValue(o);
 				//values of output neurons
-				System.out.println();
+				
 				System.out.print(actualOutputs[o][ins] + " " + outputs[o][ins] + " ");
 				//determine to which class does the output belong
-				/*delta = Math.abs(1.0 - outputs[o][ins]);
-				if (delta > 0.5)
-					System.out.print("Class 0");
-				else
-					System.out.print("Class 1");*/
-				
+//				delta = Math.abs(1.0 - outputs[o][ins]);
+//				if (delta > 0.5)
+//					System.out.print("Class 0");
+//				else
+//					System.out.print("Class 1");
+//				
 			}
+			System.out.println();
 		}
 		
 		//implement a way of testing the performance of the network

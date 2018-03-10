@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/MLP/src/MLP.java"/>
+<listEntry value="/Feature Extraction 1"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
-<listEntry value="1"/>
+<listEntry value="4"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="MLP"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="MLP"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="feature_extraction"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Feature Extraction 1"/>
 </launchConfiguration>

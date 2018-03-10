@@ -1,0 +1,250 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
+class feature_extraction{
+	static int NUMBER_OF_TRIALS = 40;
+	static int NUMBER_OF_RUNS = 9;
+	static int NUMBER_OF_SAMPLES = 986780;
+	static int NUMBER_OF_CHANNELS = 1;
+	static int[] startTimeTrain = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static int[] startTimeTest = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static int[] classLabel = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
+	static double[][] filteredSignal = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
+	static double[][] signalData = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
+//	static double[][] BandPower = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
+	static int filterOrder;
+	
+	public static void main (String args[]){
+		
+		Scanner read1, read2, read3;
+		int no = NUMBER_OF_RUNS * NUMBER_OF_TRIALS, m=0, n=0, l=0;
+		try {
+//				read1 = new Scanner (new File("src/k3b_HDR_TRIG.txt"));
+//				read2 = new Scanner (new File("src/k3b_HDR_Classlabel.txt"));
+//				
+//			
+//			for(int i=0; i<no; i++)
+//			{
+//			        if(read2.hasNextInt())
+//			        {
+//			            classLabel[n] = read2.nextInt();
+//			            n++;
+//			            read2.nextLine();
+//			            if(read1.hasNextInt())
+//				        {
+//				            startTimeTrain[m] = read1.nextInt();
+//				            m++;
+//				        }
+//			        }
+//			        else
+//			        {
+//			        	read2.nextLine();
+//			        	if(read1.hasNextInt())
+//				        {
+//				            startTimeTest[l] = read1.nextInt();
+//				            l++;
+//				        }
+//			        }
+////			}
+//			read1.close();
+//			read2.close();
+			
+			read3 = new Scanner (new File("src/k3b_s.txt"));
+			for(int i=0; i<NUMBER_OF_SAMPLES; i++)
+			{
+				for(int j=0; j<NUMBER_OF_CHANNELS; j++)
+				{
+					if(read3.hasNextDouble())
+					{
+						signalData[i][j] = read3.nextDouble();
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			System.out.print("Error while reading inputs");
+		}
+		System.out.print(m +" "+ l);
+		System.out.print(signalData[105750][3]);
+		
+		//filters parameters
+		double[] b;
+		double[] a;
+	
+		//filter Mu waves
+		//bandpass filter (x Hz to y Hz)
+		//filter parameters
+		b = new double[] {9.25398571992355e-09,0.0,-4.62699285996178e-08,0.0,9.25398571992355e-08,0.0,-9.25398571992355e-08,0.0,4.62699285996178e-08,0.0,-9.25398571992355e-09};
+		a = new double[] {1.0,-9.53129435621958,41.1779813469236,-106.173684116709,180.915497344928,-212.857872953102,175.123574008570,-99.4843372268717,37.3484132900878,-8.36813644336338,0.849859965528340}; 
+		filterSignal(b, a);
+		
+		//square signal amplitudes
+		rectification();
+		
+		//lowpass filter ( < z Hz)
+		//filter parameters
+		b = new double[] {};
+		a = new double[] {}; 
+		filterSignal(b, a);
+		
+		//extract signal mean for each channel
+		extractMean();
+		
+			
+		//filter Beta waves
+		//bandpass filter (x Hz to y Hz)
+		//filter parameters
+		b = new double[] {0.0312389236796864,	0.0,	-0.0624778473593728,	0,	0.0312389236796864};
+		a = new double[] {1,	-2.98893524665783,	3.71040234732454,	-2.23592995894801,	0.566486004657471}; 
+		filterSignal(b, a);
+			
+		//square signal amplitudes
+		rectification();
+			
+		//lowpass filter ( < z Hz)
+		//filter parameters
+		b = new double[] {};
+		a = new double[] {}; 
+		filterSignal(b, a);
+			
+		//extract signal mean for each channel
+		extractMean();
+			
+		
+		
+//		//Square signal amplitudes
+//		for(int q=0; q<60; q++)
+//		{
+//			for(int s=0; s<986780; s++)
+//			{
+//				BandPowerMu[s][q] = filteredSignalMu[s][q] * filteredSignalMu[s][q];
+//				BandPowerBeta[s][q] = filteredSignalBeta[s][q] * filteredSignalBeta[s][q];
+//			}
+//		}
+//		
+//		//Low pass filter the BandPower 
+//		//for each channel
+//		for(int c=0; c<60; c++)
+//		{
+//			//filter parameters
+//			b = new double[] {};
+//			a = new double[] {0.0}; 
+//			int M=11, N=11;
+//			lowPassMu[0][c] = BandPowerMu[0][c];
+//			lowPassBeta[0][c] = BandPowerBeta[0][c];
+//			for(int j=0; j<986780; j++)
+//			{
+//				//check for NaNs
+//				//Mu filtered signal
+//				if(BandPowerMu[j][c]!=BandPowerMu[j][c]){
+//					lowPassMu[j][c] = BandPowerMu[j][c];
+//				}
+//				else{
+//					for(int k=0; k<M; k++)
+//					{
+//						if(j>=k){
+//							//ignore NaNs
+//							if(BandPowerMu[j-k][c]==BandPowerMu[j-k][c]){
+//								lowPassMu[j][c] += b[k]*BandPowerMu[j-k][c];
+//							}
+//						}
+//						else
+//							lowPassMu[j][c] += b[k];
+//					}
+//					for(int k=0; k<N; k++)
+//					{
+//						if(j>=k){
+//							//ignore NaNs
+//							if(lowPassMu[j-k][c]==lowPassMu[j-k][c]){
+//								lowPassMu[j][c] -= a[k]*lowPassMu[j-k][c];
+//							}
+//						}
+//						else
+//							lowPassMu[j][c] -= a[k];
+//					}
+//				}
+//				
+//				//check for NaNs
+//				//Beta filtered signal
+//				if(BandPowerBeta[j][c]!=BandPowerBeta[j][c]){
+//					lowPassBeta[j][c] = BandPowerBeta[j][c];
+//				}
+//				else{
+//					for(int k=0; k<M; k++)
+//					{
+//						if(j>=k){
+//							//ignore NaNs
+//							if(BandPowerBeta[j-k][c]==BandPowerBeta[j-k][c]){
+//								lowPassBeta[j][c] += b[k]*BandPowerBeta[j-k][c];
+//							}
+//						}
+//						else
+//							lowPassBeta[j][c] += b[k];
+//					}
+//					for(int k=0; k<N; k++)
+//					{
+//						if(j>=k){
+//							//ignore NaNs
+//							if(lowPassBeta[j-k][c]==lowPassBeta[j-k][c]){
+//								lowPassBeta[j][c] -= a[k]*lowPassBeta[j-k][c];
+//							}
+//						}
+//						else
+//							lowPassBeta[j][c] -= a[k];
+//					}
+//				}
+//			}
+//		}
+	}
+	
+	static void filterSignal(double[] b, double[] a)
+	{
+		for(int c=0; c<NUMBER_OF_CHANNELS; c++)
+		{
+			for(int j=0; j<NUMBER_OF_SAMPLES; j++)
+			{
+				for(int k=0; k<2*filterOrder+1; k++)
+				{
+					if(j>=k){
+						double input = signalData[j-k][c];
+						if(input!=input){
+							input = 0.0;
+						}
+						filteredSignal[j][c] += b[k]*input;
+						if(k>0)
+						{
+							filteredSignal[j][c] -= a[k]*filteredSignal[j-k][c];
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	static void writeToFile(String fileName)
+	{
+		BufferedWriter write = null;
+		try{
+			File output = new File (fileName);
+			write = new BufferedWriter(new FileWriter(output));
+			for(int i=0; i<NUMBER_OF_SAMPLES; i++){
+				for(int j=0; j<NUMBER_OF_CHANNELS; j++){
+					write.write(filteredSignal[i][j]+" ");
+				}
+				write.write("\n");
+			}
+			
+		}catch (IOException e){
+			System.out.print("Error while writing to file");
+		}finally{
+			try {
+				write.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
+	}
+}
