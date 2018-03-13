@@ -8,16 +8,16 @@ class MLP
 	static int MAX_ITER = 10000;
 	static double LEARNING_RATE = 0.45;
 	static double MOMENTUM = 0.1;
-	static int NUM_TRAINING_INSTANCES = 4;
-	static int NUM_TESTING_INSTANCES = 4;
-	static int NUM_INPUT_NEURONS = 2;
+	static int NUM_TRAINING_INSTANCES = 180;
+	static int NUM_TESTING_INSTANCES = 180;
+	static int NUM_INPUT_NEURONS = 6;
 	static int NUM_HIDDEN_NEURONS = 5;
-	static int NUM_OUTPUT_NEURONS = 2;
+	static int NUM_OUTPUT_NEURONS = 4;
 	static int theta = 0; 
 	static double[][] inputs;
 	static double[] hidden = new double [NUM_HIDDEN_NEURONS];
-	static double[][] outputs = new double [NUM_OUTPUT_NEURONS][NUM_TRAINING_INSTANCES];
-	static double[][] actualOutputs = new double [NUM_OUTPUT_NEURONS][NUM_TRAINING_INSTANCES];
+	static double[][] outputs = new double [NUM_TRAINING_INSTANCES][NUM_OUTPUT_NEURONS];
+	static double[][] actualOutputs = new double [NUM_TRAINING_INSTANCES][NUM_OUTPUT_NEURONS];
 	//arrays of sums
 	static double[] hiddenSum = new double [NUM_HIDDEN_NEURONS];
 	static double[] outputSum = new double [NUM_OUTPUT_NEURONS];
@@ -50,13 +50,13 @@ class MLP
 				hidden_to_output_weights[i][j] = Math.random()*2 -1;
 		
 		//matrix for training inputs
-		inputs = new double [NUM_INPUT_NEURONS][NUM_TRAINING_INSTANCES];
+		inputs = new double [NUM_TRAINING_INSTANCES][NUM_INPUT_NEURONS];
 		
 		//get the training values for the input neurons
 		getInputValues(0);
 		
 		//matrix for training outputs
-		actualOutputs = new double [NUM_OUTPUT_NEURONS][NUM_TRAINING_INSTANCES];
+		actualOutputs = new double [NUM_TRAINING_INSTANCES][NUM_OUTPUT_NEURONS];
 		
 		//get the training values of the actual outputs
 		getActualOutputValues(0);	
@@ -65,13 +65,13 @@ class MLP
 		train();
 		
 		//matrix for testing inputs
-		inputs = new double [NUM_INPUT_NEURONS][NUM_TESTING_INSTANCES];
+		inputs = new double [NUM_TESTING_INSTANCES][NUM_INPUT_NEURONS];
 		
 		//get the testing values for the input neurons
 		getInputValues(1);
 		
 		//matrix for testing outputs
-		actualOutputs = new double [NUM_OUTPUT_NEURONS][NUM_TESTING_INSTANCES];
+		actualOutputs = new double [NUM_TESTING_INSTANCES][NUM_OUTPUT_NEURONS];
 		
 		//get the testing values of the actual outputs
 		getActualOutputValues(1);
@@ -85,25 +85,25 @@ class MLP
 		// t=0 means training mode and t=1 means testing mode
 		
 		//read from file
-		int row = NUM_INPUT_NEURONS;
-		int col;
+		int col = NUM_INPUT_NEURONS;
+		int row;
 		if (t==0)
-			col = NUM_TRAINING_INSTANCES;
+			row = NUM_TRAINING_INSTANCES;
 		else
-			col = NUM_TESTING_INSTANCES;
+			row = NUM_TESTING_INSTANCES;
 		Scanner read;
 		try {
 			if (t==0)
-				read = new Scanner (new File("src/input.txt"));
+				read = new Scanner (new File("training_features.txt"));
 			else 
-				read = new Scanner (new File("src/testinputs.txt"));
-			for(int i = 0; i < col; i++)
+				read = new Scanner (new File("testing_features.txt"));
+			for(int i = 0; i < row; i++)
 			{
-			    for(int j = 0; j < row; j++)
+			    for(int j = 0; j < col; j++)
 			    {
 			        if(read.hasNextDouble())
 			        {
-			            inputs[j][i] = read.nextDouble();
+			            inputs[i][j] = read.nextDouble();
 			        }
 			    }
 			}
@@ -122,31 +122,34 @@ class MLP
 //		            inputs[j][i] = min + (max - min) * rand.nextDouble();
 //		    }
 //		}
+		
 	}
 	
 	static void getActualOutputValues (int t){
 		// t=0 means training mode and t=1 means testing mode
 		
 		//read from file
-		int row = NUM_OUTPUT_NEURONS;
-		int col;
-		if (t==0)
-			col = NUM_TRAINING_INSTANCES;
-		else
-			col = NUM_TESTING_INSTANCES;
+		int row = NUM_TRAINING_INSTANCES;
+		int col = NUM_OUTPUT_NEURONS;
+//		int row = NUM_OUTPUT_NEURONS;
+//		int col;
+//		if (t==0)
+//			col = NUM_TRAINING_INSTANCES;
+//		else
+//			col = NUM_TESTING_INSTANCES;
 		Scanner read;
 		try {
 			if (t==0)
 				read = new Scanner (new File("src/output.txt"));
 			else
 				read = new Scanner (new File("src/testoutputs.txt"));
-			for(int i = 0; i < col; i++)
+			for(int i = 0; i < row; i++)
 			{
-			    for(int j = 0; j < row; j++)
+			    for(int j = 0; j < col; j++)
 			    {
 			        if(read.hasNextDouble())
 			        {
-			            actualOutputs[j][i] = read.nextDouble();
+			            actualOutputs[i][j] = read.nextDouble();
 			        }
 			    }
 			}
@@ -189,12 +192,12 @@ class MLP
 				
 				//calculate values of output neurons
 				for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
-					outputs[o][ins] = calculateOutputValue(o);
+					outputs[ins][o] = calculateOutputValue(o);
 				}
 						
 				//calculate output deltas
 				for (int e=0; e<NUM_OUTPUT_NEURONS; e++){
-					outputError = outputs[e][ins] - actualOutputs[e][ins];
+					outputError = outputs[ins][e] - actualOutputs[ins][e];
 					outputDelta[e] = -outputError * sigmoidDerivative(outputSum[e]);
 					globalError += outputError * outputError;
 				}
@@ -216,7 +219,7 @@ class MLP
 				for (int i=0; i<=NUM_INPUT_NEURONS; i++){
 					for (int h=0; h<NUM_HIDDEN_NEURONS; h++){
 						if(i != NUM_INPUT_NEURONS)
-							input_to_hidden_gradient[i][h] = hiddenDelta[h] * inputs[i][ins];
+							input_to_hidden_gradient[i][h] = hiddenDelta[h] * inputs[ins][i];
 						else
 							input_to_hidden_gradient[i][h] = hiddenDelta[h];
 					}
@@ -257,10 +260,10 @@ class MLP
 			
 			//calculate values of output neurons
 			for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
-				outputs[o][ins] = calculateOutputValue(o);
+				outputs[ins][o] = calculateOutputValue(o);
 				//values of output neurons
 				
-				System.out.print(actualOutputs[o][ins] + " " + outputs[o][ins] + " ");
+				System.out.print(actualOutputs[ins][o] + " " + outputs[ins][o] + " ");
 				//determine to which class does the output belong
 //				delta = Math.abs(1.0 - outputs[o][ins]);
 //				if (delta > 0.5)
@@ -278,7 +281,7 @@ class MLP
 	static double calculateHiddenValue (int n, int ins){
 		double sum = 0.0;
 		for (int d=0; d<NUM_INPUT_NEURONS; d++)
-			sum += inputs[d][ins]*input_to_hidden_weights[d][n];
+			sum += inputs[ins][d]*input_to_hidden_weights[d][n];
 		//add the weight of the bias to the sum;
 		sum += input_to_hidden_weights[NUM_INPUT_NEURONS][n];
 		hiddenSum[n] = sum;

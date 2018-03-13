@@ -141,11 +141,36 @@ class feature_extraction{
 		//extract signal mean for each channel
 		extractMean(3);
 		System.out.println("Beta mean");
+		
+		//write feature values to file
+		BufferedWriter write1 = null, write2=null;
+		try{
+			File output1 = new File ("training_features.txt");
+			File output2 = new File ("testing_features.txt");
+			write1 = new BufferedWriter(new FileWriter(output1));
+			write2 = new BufferedWriter(new FileWriter(output2));
+			for(int i=0; i<NUMBER_OF_TRIALS*NUMBER_OF_RUNS/2; i++)
+			{
+				for(int j=0; j<NUMBER_OF_CHANNELS*NUMBER_OF_FILTERS; j++)
+				{
+					write1.write(featureVectorTrain[i][j]+" ");
+					write2.write(featureVectorTest[i][j]+" ");
+				}
+				write1.write("\n");
+				write2.write("\n");
+			}
+			
+		}catch (IOException e){
+			System.out.print("Error while writing to file");
+		}finally{
+			try {
+				write1.close();
+				write2.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
 
-		for(int d=0; d<NUMBER_OF_CHANNELS*2; d++)
-		{
-			System.out.println(featureVectorTrain[d] + " " + featureVectorTest[d]);
-		}
 	}
 	
 	static void filterSignal(double[] b, double[] a, int n)
