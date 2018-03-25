@@ -16,6 +16,7 @@ class feature_extraction{
 	static int[] classLabel = new int[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2];
 	static double[][] signalData = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
 	static double[][] filteredSignal = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
+	static double[][] bandPower;
 	static int filterOrder = 2;
 	static double[][] featureVectorTrain = new double[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2][NUMBER_OF_CHANNELS*NUMBER_OF_FILTERS];
 	static double[][] featureVectorTest = new double[NUMBER_OF_TRIALS * NUMBER_OF_RUNS/2][NUMBER_OF_CHANNELS*NUMBER_OF_FILTERS];
@@ -94,21 +95,21 @@ class feature_extraction{
 		//filter parameters
 		b = new double[] {0.000609854718715838,	0.0,	-0.00121970943743168,	0.0,	0.000609854718715838};
 		a = new double[] {1.0,	-3.80670951689333,	5.55280661514110,	-3.67374242998861,	0.931381682126903}; 
-		filterSignal(b, a, 2);
-		writeToFile("BandPassMu.txt");
+		filteredSignal = filterSignal(signalData, b, a, 5);
+		writeToFile("BandPassMu.txt", filteredSignal);
 		System.out.println("Mu bandpass");
 		
 		//square signal amplitudes
 		rectification();
-		writeToFile("PowerMu.txt");
+		writeToFile("PowerMu.txt", filteredSignal);
 		System.out.println("Mu rectification");
 		
 		//lowpass filter ( < 40 Hz)
 		//filter parameters
-		b = new double[] {0.145323883877042,	0.290647767754085,	0.145323883877042};
-		a = new double[] {1.0,	-0.671029090774096,	0.252324626282266}; 
-		filterSignal(b, a, 1);
-		writeToFile("LowPassMu.txt");
+		b = new double[] {2.13961520381389e-05,	0.000106980760190695,	0.000213961520381389,	0.000213961520381389,	0.000106980760190695,	2.13961520381389e-05};
+		a = new double[] {1.0,	-4.18730004786440,	7.06972275279247,	-6.00995814818733,	2.57042930252410,	-0.442209182399620}; 
+		bandPower = filterSignal(filteredSignal, b, a, 6);
+		writeToFile("LowPassMu.txt", bandPower);
 		System.out.println("Mu lowpass");
 		
 		//extract signal mean for each channel
@@ -121,27 +122,28 @@ class feature_extraction{
 		//filter parameters
 		b = new double[] {0.0312389236796864,	0.0,	-0.0624778473593728,	0.0,	0.0312389236796864};
 		a = new double[] {1.0,	-2.98893524665783,	3.71040234732454,	-2.23592995894801,	0.566486004657471}; 
-		filterSignal(b, a, 2);
-		writeToFile("BandPassBeta.txt");
+		filteredSignal = filterSignal(signalData, b, a, 5);
+		writeToFile("BandPassBeta.txt", filteredSignal);
 		System.out.println("Beta bandpass");
 			
 		//square signal amplitudes
 		rectification();
-		writeToFile("PowerBeta.txt");
+		writeToFile("PowerBeta.txt", filteredSignal);
 		System.out.println("Beta rectification");
 			
 		//lowpass filter ( < 40 Hz)
 		//filter parameters
-		b = new double[] {0.145323883877042,	0.290647767754085,	0.145323883877042};
-		a = new double[] {1.0,	-0.671029090774096,	0.252324626282266}; 
-		filterSignal(b, a, 1);
-		writeToFile("LowPassBeta.txt");
+		b = new double[] {2.13961520381389e-05,	0.000106980760190695,	0.000213961520381389,	0.000213961520381389,	0.000106980760190695,	2.13961520381389e-05};
+		a = new double[] {1.0,	-4.18730004786440,	7.06972275279247,	-6.00995814818733,	2.57042930252410,	-0.442209182399620}; 
+		bandPower = filterSignal(filteredSignal, b, a, 6);
+		writeToFile("LowPassBeta.txt", bandPower);
 		System.out.println("Beta lowpass");
 			
 		//extract signal mean for each channel
 		extractMean(3);
 		System.out.println("Beta mean");
 		
+		double min1=99999999,min2=9999999,max1=-1,max2=-1;
 		//write feature values to file
 		BufferedWriter write1 = null, write2=null;
 		try{
@@ -153,6 +155,14 @@ class feature_extraction{
 			{
 				for(int j=0; j<NUMBER_OF_CHANNELS*NUMBER_OF_FILTERS; j++)
 				{
+					if(featureVectorTrain[i][j]>max1)
+						max1 = featureVectorTrain[i][j];
+					if(featureVectorTrain[i][j]<min1)
+						min1 = featureVectorTrain[i][j];
+					if(featureVectorTest[i][j]>max2)
+						max2 = featureVectorTest[i][j];
+					if(featureVectorTest[i][j]<min2)
+						min2 = featureVectorTest[i][j];
 					write1.write(featureVectorTrain[i][j]+" ");
 					write2.write(featureVectorTest[i][j]+" ");
 				}
@@ -169,33 +179,36 @@ class feature_extraction{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}	
+		}
+		System.out.print(min1 + " " + max1 + " " + min2 + " " + max2);
 
 	}
 	
-	static void filterSignal(double[] b, double[] a, int n)
+	static double[][] filterSignal(double[][] inputSignal, double[] b, double[] a, int n)
 	{
+		double[][] newSignal = new double[NUMBER_OF_SAMPLES][NUMBER_OF_CHANNELS];
 		for(int c=0; c<NUMBER_OF_CHANNELS; c++)
 		{
 			for(int j=0; j<NUMBER_OF_SAMPLES; j++)
 			{
-				for(int k=0; k<n*filterOrder+1; k++)
+				for(int k=0; k<n; k++)
 				{
 					if(j>=k){
-						double input = signalData[j-k][c];
+						double input = inputSignal[j-k][c];
 						if(input!=input){
 							input = 0.0;
-							filteredSignal[j-k][c] = 0.0;
+							//filteredSignal[j-k][c] = 0.0;
 						}
-						filteredSignal[j][c] += b[k]*input;
+						newSignal[j][c] += b[k]*input;
 						if(k>0)
 						{
-							filteredSignal[j][c] -= a[k]*filteredSignal[j-k][c];
+							newSignal[j][c] -= a[k]*newSignal[j-k][c];
 						}
 					}
 				}
 			}
 		}
+		return newSignal;
 	}
 	
 	static void rectification()
@@ -211,38 +224,39 @@ class feature_extraction{
 	
 	static void extractMean(int l)
 	{
-		int s, u;
+		int s, u, v, w;
 		for(int t=0; t<NUMBER_OF_TRIALS*NUMBER_OF_RUNS/2; t++)
 		{
 			for(int c=0; c<NUMBER_OF_CHANNELS; c++)
 			{
-				double sum = 0, count = 0;
 				//ignore first 3 seconds of each trial
 				s = startTimeTrain[t]+250*3;
-				while(s<986780&&filteredSignal[s][c]!=0.0)
+				v = startTimeTrain[t]+250*7;
+				while(s<v)
 				{
 					//take the mean
 					//sum += filteredSignal[s][c];
-					count++;
-					featureVectorTrain[t][c+l] += (filteredSignal[s][c]-featureVectorTrain[t][c+l])/count; 
+					featureVectorTrain[t][c+l] += bandPower[s][c]; 
+					//System.out.println(bandPower[s][c]);
 					s++;
 				}
+				featureVectorTrain[t][c+l] *= 1.0/250.0;
+				//System.out.println(featureVectorTrain[t][c+l]);
 				
-				sum = 0.0;
-				count = 0.0;
 				u = startTimeTest[t]+250*3;
-				while(u<986780&&filteredSignal[u][c]!=0.0)
+				w = startTimeTest[t]+250*7;
+				while(u<w)
 				{
 					//sum += filteredSignal[u][c];
-					count++;
-					featureVectorTest[t][c+l] += (filteredSignal[u][c]-featureVectorTrain[t][c+l])/count;
+					featureVectorTest[t][c+l] += bandPower[u][c];
 					u++;
 				}
+				featureVectorTest[t][c+l] *= 1.0/250.0;
 			}	
 		}
 	}
 	
-	static void writeToFile(String fileName)
+	static void writeToFile(String fileName, double[][] signal)
 	{
 		BufferedWriter write = null;
 		try{
@@ -250,7 +264,7 @@ class feature_extraction{
 			write = new BufferedWriter(new FileWriter(output));
 			for(int i=0; i<NUMBER_OF_SAMPLES; i++){
 				for(int j=0; j<NUMBER_OF_CHANNELS; j++){
-					write.write(filteredSignal[i][j]+" ");
+					write.write(signal[i][j]+" ");
 				}
 				write.write("\n");
 			}

@@ -5,13 +5,13 @@ import java.util.Scanner;
 
 class MLP
 {
-	static int MAX_ITER = 10000;
+	static int MAX_ITER = 200000;
 	static double LEARNING_RATE = 0.45;
 	static double MOMENTUM = 0.1;
 	static int NUM_TRAINING_INSTANCES = 180;
 	static int NUM_TESTING_INSTANCES = 180;
 	static int NUM_INPUT_NEURONS = 6;
-	static int NUM_HIDDEN_NEURONS = 5;
+	static int NUM_HIDDEN_NEURONS = 9;
 	static int NUM_OUTPUT_NEURONS = 4;
 	static int theta = 0; 
 	static double[][] inputs;
@@ -35,6 +35,9 @@ class MLP
 	//matrices for weights adjustments
 	static double[][] input_to_hidden_weights_adjust = new double[NUM_INPUT_NEURONS+1][NUM_HIDDEN_NEURONS];
 	static double[][] hidden_to_output_weights_adjust = new double[NUM_HIDDEN_NEURONS+1][NUM_OUTPUT_NEURONS];
+	static double min;
+	static double max;
+	static int accuracy; 
 	
 	public static void main(String args[]){                       
 		
@@ -88,9 +91,17 @@ class MLP
 		int col = NUM_INPUT_NEURONS;
 		int row;
 		if (t==0)
+		{
 			row = NUM_TRAINING_INSTANCES;
-		else
+			min = 5.585991368644054;
+			max = 266.796790653213;
+		}
+		
+		else{
 			row = NUM_TESTING_INSTANCES;
+			min = 5.942390525581951;
+			max = 270.8214043599919;
+		}
 		Scanner read;
 		try {
 			if (t==0)
@@ -104,6 +115,10 @@ class MLP
 			        if(read.hasNextDouble())
 			        {
 			            inputs[i][j] = read.nextDouble();
+			            inputs[i][j] -= min;
+			            inputs[i][j] /= max;
+			            inputs[i][j] = inputs[i][j]*2-1;
+			            
 			        }
 			    }
 			}
@@ -251,6 +266,8 @@ class MLP
 	
 	static void test(){
 		double delta;
+		double m=0.0;
+		int cl=0;
 		for (int ins=0; ins<NUM_TESTING_INSTANCES; ins++){
 		
 			//calculate values of hidden neurons
@@ -260,10 +277,21 @@ class MLP
 			
 			//calculate values of output neurons
 			for (int o=0; o<NUM_OUTPUT_NEURONS; o++){
+				m=0.0;
 				outputs[ins][o] = calculateOutputValue(o);
 				//values of output neurons
 				
-				System.out.print(actualOutputs[ins][o] + " " + outputs[ins][o] + " ");
+				//calculate maximum value 
+				for(int i=0; i<NUM_OUTPUT_NEURONS; i++)
+				{
+					if(outputs[ins][i]>m)
+					{
+						m = outputs[ins][i];
+						cl = i+1;
+					}
+				}
+				
+				System.out.print(actualOutputs[ins][o] + " " /*+ outputs[ins][o] + " "*/);
 				//determine to which class does the output belong
 //				delta = Math.abs(1.0 - outputs[o][ins]);
 //				if (delta > 0.5)
@@ -272,8 +300,12 @@ class MLP
 //					System.out.print("Class 1");
 //				
 			}
+			if(actualOutputs[ins][cl-1]==1.0)
+				accuracy++;
+			System.out.print(cl);
 			System.out.println();
 		}
+		System.out.print(accuracy);
 		
 		//implement a way of testing the performance of the network
 	}
