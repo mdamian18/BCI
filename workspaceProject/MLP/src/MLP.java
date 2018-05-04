@@ -1,13 +1,16 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
 
 class MLP
 {
 	static int MAX_ITER = 200000;
-	static double LEARNING_RATE = 0.45;
-	static double MOMENTUM = 0.1;
+	static double LEARNING_RATE = 0.01;
+	static double MOMENTUM = 0.01;
 	static int NUM_TRAINING_INSTANCES = 180;
 	static int NUM_TESTING_INSTANCES = 180;
 	static int NUM_INPUT_NEURONS = 6;
@@ -38,6 +41,10 @@ class MLP
 	static double min;
 	static double max;
 	static int accuracy; 
+	static int[] classes = new int [NUM_TESTING_INSTANCES];
+	static int cls;
+	static int[] good = new int [4];
+	static int[] positive = new int [4];
 	
 	public static void main(String args[]){                       
 		
@@ -300,12 +307,44 @@ class MLP
 //					System.out.print("Class 1");
 //				
 			}
-			if(actualOutputs[ins][cl-1]==1.0)
+			if(actualOutputs[ins][cl-1]==1.0){
 				accuracy++;
+				//true positives
+				good[cl-1]++;
+			}
 			System.out.print(cl);
 			System.out.println();
+			classes[cls] = cl;
+			cls++;
+			//positive
+			positive[cl-1]++;
 		}
 		System.out.print(accuracy);
+		System.out.print("\n");
+		System.out.print(100*accuracy/180);
+		System.out.print("\n");
+		for (int i=0; i<4; i++){
+			System.out.print("Recall for class " + String.valueOf(i+1) + " is " + String.valueOf(good[i]) + "/" + String.valueOf(45) + "\n");
+			System.out.print("Precision for class " + String.valueOf(i+1) + " is " + String.valueOf(good[i]) + "/" + String.valueOf(positive[i]) + "\n");
+		}
+
+		BufferedWriter write = null;
+		try{
+			File output = new File ("Classes.txt");
+			write = new BufferedWriter(new FileWriter(output));
+			for(int i=0; i<NUM_TESTING_INSTANCES; i++){
+				write.write(String.valueOf(classes[i]));
+				write.write("\n");
+			} 
+		}catch (IOException e){
+			System.out.print("Error while writing to file");
+		}finally{
+			try {
+				write.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
 		
 		//implement a way of testing the performance of the network
 	}
